@@ -17,6 +17,14 @@ jobs:
       REPO_DIR: repo
 
     steps:
+      - name: Install git (needed before checkout inside the container)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Sy --noconfirm --needed git
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -118,6 +126,13 @@ jobs:
 
           cd "$GITHUB_WORKSPACE/$REPO_DIR"
           repo-add ps4-video.db.tar.zst *.pkg.tar.zst
+
+      - name: Upload packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps4-mesa-packages
+          path: repo/*.pkg.tar.zst
+          if-no-files-found: error
 
       - name: Commit artifacts
         shell: bash
